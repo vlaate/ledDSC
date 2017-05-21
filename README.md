@@ -14,8 +14,7 @@ Here is a 6 minute youtube video describing how it works:
 alt="Explanation video" width="600" height="450" border="10" /></a>
 
 ## Hardware used:
-* Arduino Mega328 development board (UNO, Pro or similar).
-* LSM303DLHC sensor module, I used this one: https://www.aliexpress.com/item/1-pcs-GY-511-LSM303DLHC-Module-E-Compass-3-Axis-Accelerometer-3-Axis-Magnetometer-Module-Sensor/1956617486.html
+* Arduino Mega328 development board (UNO, Pro or similar). The one in the video is a Pro mini 5V 16Mhz
 * HMC5883 sensor module, I used the GY-271 variant.
 * MMA8452 accelerometer, I used the GY-45 variant.
 * 7 Segment, 8 Digit, MAX72XX controlled, 5 Wire LED display.
