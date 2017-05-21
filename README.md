@@ -21,30 +21,30 @@ alt="Explanation video" width="600" height="450" border="10" /></a>
 * KY-040 Rotary encoder, for user input (selecting mode, zeroing the compass and inclinometer, adjusting display brightness)
 
 ## Arduino pinout:
-    SDA = A4   (4.7K pullup to VCC recommended)
-    SCL = A5   (4.7K pullup to VCC recommended)
+* SDA = A4   (4.7K pullup to VCC recommended)
+* SCL = A5   (4.7K pullup to VCC recommended)
 
 ## MMA8452 pinout:
-    SDA, SCL and GND: matching the Arduino
-    VCC (from Arduino) to VCC_IN, not to the 3V3  pin
-    SAO (address select) to GND.
-    When ised as a digital level, the accelerometer is meant to be used hosizontal (Z axis pointing to the sky).
-    When used as inclinometer or DSC, the acelerometer is meant to be used vertical, with the Z axis pointing to the horizon.
+* SDA, SCL and GND: matching the Arduino
+* VCC (from Arduino) to VCC_IN, not to the 3V3  pin
+* SAO (address select) to GND.
+* When ised as a digital level, the accelerometer is meant to be used hosizontal (Z axis pointing to the sky).
+* When used as inclinometer or DSC, the acelerometer is meant to be used vertical, with the Z axis pointing to the horizon.
 
 ## HMC5883 (or GY271) pinout:
-    SDA, SCL, VCC and GND: matching the Arduino
-    DRDY pin disconnected
-    The HMC5883 is meant to be used on a permanently horizontal position (not attached to the telescope tube)
+* SDA, SCL, VCC and GND: matching the Arduino
+* DRDY pin disconnected
+* The HMC5883 is meant to be used on a permanently horizontal position (not attached to the telescope tube)
 
 ## MAX72XX LED Display:
-    VCC and GND: matching the Arduino
-    DIN (Data In) connected to Arduino pin 12
-    CLK connected to Arduino pin 11
-    LOAD (CS) connected to Arduino pin 10
+* VCC and GND: matching the Arduino
+* DIN (Data In) connected to Arduino pin 12
+* CLK connected to Arduino pin 11
+* LOAD (CS) connected to Arduino pin 10
 
 ## KY-040 Rotary Encoder:
-    CLK connected to Arduino pin 2
-    DT connected to Arduino pin 3
-    SW connected to Arduino pin 4
-    VCC (sometimes labeled "+" connected to Arduino VCC
-    GND connected to Arduino GND
+* CLK connected to Arduino pin 2
+* DT connected to Arduino pin 3
+* SW connected to Arduino pin 4, and through a 10K pullup to VCC.
+* VCC (sometimes labeled "+" connected to Arduino VCC
+* GND connected to Arduino GND
