@@ -10,7 +10,7 @@ These can be useful for leveling a telescope and for doing basic polar alignment
 
 Here is a 6 minute youtube video describing how it works:
 
-<a href="https://youtu.be/bIwke95pRPY" target="_blank"><img src="https://github.com/vlaate/ledDSC/blob/master/IMG_20170520_213607.jpg" 
+<a href="https://youtu.be/bIwke95pRPY" target="_blank"><img src="https://raw.githubusercontent.com/vlaate/ledDSC/master/IMG_20170520_213607.jpg" 
 alt="Explanation video" width="600" height="450" border="10" /></a>
 
 ## Hardware used:
