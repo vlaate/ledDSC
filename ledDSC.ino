@@ -56,7 +56,7 @@
     VCC and GND: matching the Arduino
     DIN (Data In) connected to Arduino pin 12
     CLK connected to Arduino pin 11
-    LOAD connected to Arduino pin 10
+    LOAD (CS) connected to Arduino pin 10
 
     KY-040 Rotary Encoder:
     CLK connected to Arduino pin 2
@@ -89,17 +89,17 @@
 #define zMax  1017
 
 // Magnetometer calibration values, must be adjusted for each device:
-#define minX -404.06
-#define maxX 217.35
-#define minY -546.70
-#define maxY 21.45
+#define minX -258.54   
+#define maxX 260.97
+#define minY -340.19
+#define maxY 184.62
 
 
 /** Class to encapsulate the behavior of the MMA8452 accelerometer for calculations of inclination and 2 axis digital level with moving average smoothing algorithm.
 *   Includes public domain code originally from Nathan Seidle @SparkFun */
 class MMA8452
 {
-#define AL_EMA_WEIGHT    0.05f  // weight coefficient for new values vs old values used in the moving average smoothing algorithm for Altitude
+#define AL_EMA_WEIGHT    0.07f  // weight coefficient for new values vs old values used in the moving average smoothing algorithm for Altitude
   public: float gx, gy, gz, angleX, angleY, altitudeReading;
 
   public: void measure()
@@ -113,16 +113,17 @@ class MMA8452
 
   public: void calculateLevelReadings()
     {
-      float fangleX = 90 + atan2(gz, gx) * RADIAN_TO_DEGREES;
+      float fangleX = 90 + atan2(-1*gz, gx) * RADIAN_TO_DEGREES;
       angleX = (1 - AL_EMA_WEIGHT) * angleX + AL_EMA_WEIGHT * fangleX;
 
-      float fangleY = 90 + atan2(gz, gy) * RADIAN_TO_DEGREES;
+      float fangleY = 90 + atan2(-1*gz, gy) * RADIAN_TO_DEGREES;
       angleY = (1 - AL_EMA_WEIGHT) * angleY + AL_EMA_WEIGHT * fangleY;
     }
 
   public: void calculateAltitudeReadings()
     {
-      float newAltitudeReading = atan2(gz, sqrt(gx * gx + gy * gy));
+      //float newAltitudeReading = atan2(gz, sqrt(gx * gx + gy * gy));
+      float newAltitudeReading = atan2(gx, sqrt(gz * gz + gy * gy));
       newAltitudeReading = 90 + newAltitudeReading * RADIAN_TO_DEGREES;
       altitudeReading = (1 - AL_EMA_WEIGHT) * altitudeReading + AL_EMA_WEIGHT * newAltitudeReading;
     }
@@ -394,8 +395,8 @@ void pinChangeISR() {
   byte criterion = abNew ^ abOld;
   if (criterion == 1 || criterion == 2) {
     if (upMask & (1 << (2 * abOld + abNew / 2)))
-      count--;
-    else count++;       // upMask = ~downMask
+      count++;
+    else count--;       // upMask = ~downMask
   }
   abOld = abNew;        // Save new state
 }
@@ -404,14 +405,18 @@ void pinChangeISR() {
 #define EEPROM_DISPLAY_BRIGHTNESS 0 // EEPROM address for storing the preferred display brightness
 #define EEPROM_OFFSET_TRUE_NORTH 2  // EEPROM address for storing offset of true north (local magnetic declination)
 #define EEPROM_OFFSET_ALTITUDE 4    // EEPROM address for storing altitude offset
+#define EEPROM_OFFSET_LEVEL_X 6  // EEPROM address for storing offset of true north (local magnetic declination)
+#define EEPROM_OFFSET_LEVEL_Y 8    // EEPROM address for storing altitude offset
 MMA8452 accelerometer;
 Compass compass;
 Display display;
 int16_t brightness = 8;
-int16_t localMagneticDeclination = 0.0f;  // local magnetic declination, to convert magnetic heading to true north if desired
-int16_t localAltitudeOffset = 0.0f;       // altitude offset, to be able to zero the inclinometer
+int16_t localMagneticDeclination = 0;  // local magnetic declination, to convert magnetic heading to true north if desired
+int16_t localAltitudeOffset = 0;       // altitude offset, to be able to zero the inclinometer
+int16_t levelXOffset = 0;              // offset for the X axis, to be able to zero the level
+int16_t levelYOffset = 0;              // offset for the Y axis, to be able to zero the level
 byte mode = 0;
-enum { dsc = 0, zeroCompass = 1, zeroAlt = 2, level = 3};
+enum { dsc = 0, zeroCompass = 1, zeroAlt = 2, level = 3, zerolevelX = 4, zerolevelY = 5 };
 /** 0 = working as dsc, rotating the encoder does brightness control
  *  1 = for zeroing compass, rotating the encoder adjusts offset
  *  2 = for zeroing altitude, rotating the encoder adjusts offset
@@ -454,6 +459,15 @@ void setup()
     localAltitudeOffset = 0;
   }
 
+  // get level offsets from eeprom
+  EEPROM_read(EEPROM_OFFSET_LEVEL_X, levelXOffset);
+  EEPROM_read(EEPROM_OFFSET_LEVEL_Y, levelYOffset);
+  if (abs(levelXOffset) > 100 || abs(levelYOffset) > 100)  // more than 100 degrees offset could mean corrupted eeprom
+  {
+    levelXOffset = 0;
+    levelXOffset = 0;
+  }
+
   updateCounter();
   Wire.begin();
   compass.setup();
@@ -481,6 +495,7 @@ long lastPoll;
 void updateRotaryEncoderCount()
 {
   if (old_count != count) {
+//    Serial.println(count);
     old_count = count;
     lastChange = millis();
     unsaved = true;
@@ -491,6 +506,12 @@ void updateRotaryEncoderCount()
         break;
       case zeroAlt:
         localAltitudeOffset  = count;
+        break;
+      case zerolevelX:
+        levelXOffset  = count;
+        break;
+      case zerolevelY:
+        levelYOffset  = count;
         break;
       default:
         if (count > 30) {count = 30;}
@@ -504,9 +525,10 @@ void updateRotaryEncoderCount()
   if (unsaved && millis() - lastChange > 10000) // only save to EEPROM after 10 seconds of last change
   {
     EEPROM_write(EEPROM_DISPLAY_BRIGHTNESS, brightness);
-    EEPROM_write(EEPROM_OFFSET_TRUE_NORTH, (localMagneticDeclination * 20));
     EEPROM_write(EEPROM_OFFSET_TRUE_NORTH, count);
-    EEPROM_write(EEPROM_OFFSET_TRUE_NORTH, count);
+    EEPROM_write(EEPROM_OFFSET_ALTITUDE, localAltitudeOffset);
+    EEPROM_write(EEPROM_OFFSET_LEVEL_X, levelXOffset);
+    EEPROM_write(EEPROM_OFFSET_LEVEL_Y, levelYOffset);
     unsaved = false;
   }
 
@@ -517,7 +539,7 @@ void updateRotaryEncoderCount()
     lastPoll = millis();
     display.clear();
     mode++;
-    if (mode > level) {mode = 0;}
+    if (mode > zerolevelY) {mode = 0;}
     updateCounter();
   }
 }
@@ -538,6 +560,12 @@ void updateCounter()
         break;
       case level:
         abOld = count = old_count = brightness;
+        break;
+      case zerolevelX:
+        abOld = count = old_count = levelXOffset;
+        break;
+      case zerolevelY:
+        abOld = count = old_count = levelYOffset;
         break;
     }
 }
@@ -560,6 +588,8 @@ void printReadings()
     {
       altitude -= 360.0;
     }
+    float levelX = accelerometer.angleX + ((float)levelXOffset / 20.0);
+    float levelY = accelerometer.angleY + ((float)levelYOffset / 20.0);   
 
     switch (mode)
     {
@@ -574,9 +604,15 @@ void printReadings()
         display.printNumber(altitude, false);
         break;
       case level:      
-        display.printNumber(accelerometer.angleX, true);
-        display.printNumber(accelerometer.angleY, false);
+        display.printNumber(levelX, true);
+        display.printNumber(levelY, false);
         break;
+      case zerolevelX:
+        display.printNumber(levelX, true);
+        break;      
+      case zerolevelY:
+        display.printNumber(levelY, false);
+        break;      
     }
     lastTime = millis();
   }
