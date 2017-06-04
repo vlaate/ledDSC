@@ -46,5 +46,5 @@ alt="Explanation video" width="600" height="450" border="10" /></a>
 * CLK connected to Arduino pin 2
 * DT connected to Arduino pin 3
 * SW connected to Arduino pin 4, and through a 10K pullup to VCC.
-* VCC (sometimes labeled "+" connected to Arduino VCC
+* VCC (sometimes labeled "+") connected to Arduino VCC
 * GND connected to Arduino GND
