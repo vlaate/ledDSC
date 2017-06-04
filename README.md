@@ -28,7 +28,7 @@ alt="Explanation video" width="600" height="450" border="10" /></a>
 * SDA, SCL and GND: matching the Arduino
 * VCC (from Arduino) to VCC_IN, not to the 3V3  pin
 * SAO (address select) to GND.
-* When used as a digital level, the accelerometer is meant to be used hosizontal (Z axis pointing to the sky).
+* When used as a digital level, the accelerometer is meant to be used horizontal (Z axis pointing to the sky).
 * When used as inclinometer or DSC, the acelerometer is meant to be used vertical, with the Z axis pointing to the horizon.
 
 ## HMC5883 (or GY271) pinout:
